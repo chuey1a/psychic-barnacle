@@ -1,4 +1,5 @@
 #connect 4
+import numpy as np
 
 class Board():
   rows, cols = (6, 7)
@@ -14,7 +15,11 @@ class Board():
         if self.board[i][j] == 0:
           print(" " + " | ", end = "")
         else:
-          print(str(self.board[i][j]) + " | ", end = "")
+          if self.board[i][j] == 1:
+            print("x | ", end = "")
+          else:
+            print("o | ", end = "")
+
       print("\n-----------------------------")
     print()
 
@@ -27,10 +32,10 @@ class Board():
     complete = 0
     if player_num == 1:
       row = self.col_counter[col]
-      self.board[row][col] = "x"
+      self.board[row][col] = 1
       self.col_counter[col] -= 1
     if player_num == 2:
-      self.board[self.col_counter[col]][col] = "o"
+      self.board[self.col_counter[col]][col] = 2
       self.col_counter[col] -= 1
 
   def player_input(self, player_num):
@@ -59,12 +64,12 @@ class Board():
       for j in range(1,7):
         if row_count1 < 4 and row_count2 < 4:
           if self.board[i][j-1] == self.board[i][j] and self.board[i][j] != 0:
-            if self.board[i][j-1] == "x":
+            if self.board[i][j-1] == 1:
               row_count1 += 1
             else:
               row_count2 += 1
-        elif row_count1 == 4 or row_count2 == 4:
-          if row_count1 == 4:
+        elif row_count1 >= 4 or row_count2 >= 4:
+          if row_count1 >= 4:
             return 1
           else:
             return 2
@@ -76,12 +81,12 @@ class Board():
       for j in range(1,6):
         if column_count1 < 4 and column_count2 < 4:
           if self.board[j-1][i] == self.board[j][i] and self.board[j][i] != 0:
-            if self.board[j-1][i] == "x":
+            if self.board[j-1][i] == 1:
               column_count1 += 1
             else:
               column_count2 += 1
-        elif column_count1 == 4 or column_count2 == 4:
-          if column_count1 == 4:
+        elif column_count1 >= 4 or column_count2 >= 4:
+          if column_count1 >= 4:
             return 1
           else:
             return 2
@@ -89,30 +94,27 @@ class Board():
       column_count2 = 1
 
     #check diagonals for winning combo
-    #left to right:
-    diag = []
-    for j in range(7):
-      diag.append([row[i+j] for i,row in enumerate(self.board) if 0 <= i+j < len(row)])
+    a = np.array(self.board)
 
-    for i in range(6):
-      for j in range(1,7):
-        if row_count1 < 4 and row_count2 < 4:
-          if self.board[i][j-1] == self.board[i][j] and self.board[i][j] != 0:
-            if self.board[i][j-1] == "x":
-              row_count1 += 1
-            else:
-              row_count2 += 1
-        elif row_count1 == 4 or row_count2 == 4:
-          if row_count1 == 4:
-            return 1
+    diags = [a[::-1,:].diagonal(i) for i in range(-a.shape[0]+1,a.shape[1])]
+    diags.extend(a.diagonal(i) for i in range(a.shape[1]-1,-a.shape[0],-1))
+    diag_list = [n.tolist() for n in diags]
+
+    for diag in diag_list:
+      for i in range(1, len(diag)):
+        if diag[i-1] == diag[i] and diag[i] != 0:
+          if diag[i] == 1:
+            diag_count1 += 1
           else:
-            return 2
-      row_count1 = 1
-      row_count2 = 1
+            diag_count1 += 1
+        if diag_count1 == 4:
+          return 1
+        elif diag_count2 == 4:
+          return 2
+      diag_count1 = 1
+      diag_count2 = 1
 
-    print(diag)
-
-    return 0
+    #return 0
 
 #Welcome message
 print("\n   Welcome to Connect FOR!!\n")
@@ -120,10 +122,9 @@ print("\n   Welcome to Connect FOR!!\n")
 four_board = Board()
 four_board.print_board()
 
-game = 0
 player_num = 1
 
-while game != 1:
+while True:
   #Player 1 turn
   four_board.player_input(player_num)
   four_board.print_board()
@@ -141,11 +142,13 @@ while game != 1:
   #Check to see if there is a winner
   winner = four_board.check_winner()
   if winner == 1 or winner == 2:
+    print("f")
     break
 
   #Check to see if board is full
   full = four_board.board_full()
   if full == True:
+    print("g")
     break
 
   print()
